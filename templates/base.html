@@ -5,10 +5,35 @@
 </head>
 
 <body>
-  Ratings
-  <hr>
+<div>  Ratings </div>
+<div id="sidebar">
+	<span id="loginlogout"><a href="/login"></a> </span>
+
+</div>
+
+<hr>
+
+  	{% for msg in get_flashed_messages() %}
+    	<p class=flashes>
+    	{{ msg }}
+		</p>
+  	{% endfor %}
+
 
   {% block content %} put your content here {% endblock %}
 
+
+<script type="text/javascript">
+	let loginlogut = document.querySelector('#loginlogout');
+	console.log(loginlogut)
+	if (loginlogut.innerText === "Log In") {
+		loginlogout.innerHTML = '<a href="/logout">Log Out</a>'
+	}else {
+		loginlogout.innerHTML = '<a href="/login">Log In</a>';
+		// console.log('bar')
+	}
+
+
+</script>
 </body>
 </html>
