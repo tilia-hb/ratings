@@ -6,8 +6,8 @@
 	<ul>
 	{% for user in users %}
       <li>
-        <a href="/users/{{ user.user_id }}">
-          {{ user.email }} ({{ user.user_id }})
+        e-mail: {{ user.email }} -- User ID: <a href="/user/{{ user.user_id }}">
+           ({{ user.user_id }})
         </a>
       </li>
     {% endfor %}

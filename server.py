@@ -28,14 +28,54 @@ def index():
 
 @app.route('/movies')
 def movies():
-    return render_template('movies.html')
+    movies = Movie.query.order_by(Movie.title).all()
+    print(movies)
+    return render_template('movies.html', movies=movies)
 
 @app.route('/users')
 def users():
     users = User.query.all()
+    return render_template("users.html", users=users)
+
+@app.route('/user/<user_id>')
+def get_user_info(user_id):
+    user_object = User.query.get(user_id)
+    print(user_object)
+    print(user_object.zipcode)
+    return render_template("user_details.html",
+                           display_user=user_object)
+
+@app.route('/movie/<movie_id>')
+def get_movie_info(movie_id):
+    movie_object = Movie.query.get(movie_id)
+    print(movie_object)
+    total_score = 0
+    for movie in movie_object.ratings:
+        total_score += movie.score
+    print("total score is: ", total_score)
+    average_score = round(total_score / len(movie_object.ratings),2)
+    print("average score is: ", average_score)
+    num_ratings = len(movie_object.ratings)
+
+    return render_template("movie_details.html",
+                           current_movie=movie_object,
+                           ave = average_score,
+                           num_ratings = num_ratings)
 
 
+@app.route('/movie/<movie_id>', methods=['POST'])
+def rate_movie(movie_id):
+    rating = request.form.get('rating')
+    current_user_id = session["current_user"]
 
+    movie_object = Movie.query.get(movie_id)
+    movie_rating = movie_object.ratings
+    print("movie obj is: ", movie_object)
+    print("movie rating by current user is: ", movie_rating)
+
+    redirect_route = 'movie/' + str(movie_id)
+
+    return redirect(redirect_route)
 
 @app.route('/registration',methods = ['GET'])
 def registration():
@@ -82,7 +122,7 @@ def login_confirm():
 
     if User.query.filter_by(email=new_email).first():
         current_user = User.query.filter_by(email=new_email).first()
-        user_id = current_user.user_id
+        user_id = str(current_user.user_id)
         user_pwd = current_user.password
         print("cur_user object is: ",current_user)
         print("cur_user_id is: ",user_id)
@@ -90,7 +130,8 @@ def login_confirm():
         print("entered passowrd is: ", pwd)
         if user_pwd == pwd:
             session["current_user"] = user_id
-            return redirect('/')
+            redirect_route = 'user/' + user_id
+            return redirect(redirect_route)
         else:
             flash("Login failed")
         return render_template('login.html')
@@ -101,6 +142,7 @@ def login_confirm():
 @app.route('/logout')
 def logout():
     session.clear()
+    flash("You are logged out")
     return redirect('/')
     
 
@@ -109,13 +151,13 @@ if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
     app.debug = True
-    DEBUG_TB_INTERCEPT_REDIRECTS = False
+    # DEBUG_TB_INTERCEPT_REDIRECTS = False
     # make sure templates, etc. are not cached in debug mode
     app.jinja_env.auto_reload = app.debug
 
     connect_to_db(app)
 
     # Use the DebugToolbar
-    DebugToolbarExtension(app)
+    # DebugToolbarExtension(app)
 
     app.run(port=5000, host='0.0.0.0')
